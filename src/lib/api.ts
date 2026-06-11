@@ -10,10 +10,7 @@
 function resolveApiBaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (envUrl) return envUrl.replace(/\/$/, "");
-  if (typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:3000`;
-  }
-  return "http://localhost:3000";
+  return "https://new.santolabs.com.br";
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
