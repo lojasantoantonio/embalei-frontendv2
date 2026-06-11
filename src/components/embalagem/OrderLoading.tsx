@@ -1,14 +1,27 @@
 interface Props {
   code: string | null;
+  mode?: "buscando" | "finalizando";
 }
 
-// Feedback visual enquanto o backend consulta o pedido na IDWorks a partir da
-// chave de acesso da NF-e bipada. Scanner animado + esqueleto do cartão do
-// pedido para indicar claramente que os dados estão sendo buscados.
-export function OrderLoading({ code }: Props) {
+const COPY = {
+  buscando: {
+    title: "Buscando pedido",
+    subtitle: "Consultando os dados da nota fiscal na IDWorks.",
+  },
+  finalizando: {
+    title: "Fechando embalagem",
+    subtitle: "Gravando volumes e duração. Não bipe outra nota ainda.",
+  },
+} as const;
+
+// Feedback visual enquanto o backend processa: ou consultando a IDWorks (1º
+// bipe) ou finalizando a embalagem (2º bipe). Scanner animado + esqueleto do
+// pedido para indicar claramente que algo está em andamento.
+export function OrderLoading({ code, mode = "buscando" }: Props) {
   const shortCode = code
     ? `${code.slice(0, 8)}…${code.slice(-6)}`
     : null;
+  const copy = COPY[mode];
 
   return (
     <div className="order-loading" role="status" aria-live="polite">
@@ -23,14 +36,14 @@ export function OrderLoading({ code }: Props) {
         </div>
 
         <h3>
-          Buscando pedido
+          {copy.title}
           <span className="ol-dots">
             <span />
             <span />
             <span />
           </span>
         </h3>
-        <p>Consultando os dados da nota fiscal na IDWorks.</p>
+        <p>{copy.subtitle}</p>
         {shortCode && <code className="ol-key">{shortCode}</code>}
       </div>
 

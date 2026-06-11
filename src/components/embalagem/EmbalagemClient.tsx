@@ -85,6 +85,18 @@ export function EmbalagemClient() {
 
   const exiting = useRef(false);
 
+  // Defere o reset do pedido para o próximo tick. Sem isso, react-aria/pressable
+  // dispara "InvalidStateError: Transition was aborted because of invalid state"
+  // porque o botão Cancelar (e o Input do ScanStrip) podem estar no meio de uma
+  // transição de press/focus quando `setOrder(null)` os desmonta/troca de modo.
+  const resetOrderState = () => {
+    setTimeout(() => {
+      setOrder(null);
+      setPicks({});
+      setBoxScanCount(0);
+    }, 0);
+  };
+
   const pushToast = (msg: string, kind: ToastKind = "") => {
     const opts = { timeout: 2400 };
     if (kind === "success") toast.success(msg, opts);
@@ -152,6 +164,10 @@ export function EmbalagemClient() {
       return;
     }
     setFinalizing(true);
+    pushToast(
+      `Fechando embalagem do pedido ${order.numPedido}…`,
+      "warn"
+    );
     try {
       const result = await finalizarEmbalagem({
         workstationId: session.workstationId,
@@ -163,9 +179,15 @@ export function EmbalagemClient() {
         `Pedido ${order.numPedido} embalado · ${boxScanCount} volume(s)`,
         "success"
       );
-      setOrder(null);
-      setPicks({});
-      setBoxScanCount(0);
+      resetOrderState();
+      // Garante que o TopBar reflita o estado mais atual do banco após o
+      // fechamento (defesa em profundidade: se a resposta do finalizar trouxer
+      // contagem defasada por qualquer race, esta chamada corrige).
+      fetchOperatorStats(session.workstationId)
+        .then(setOperatorStats)
+        .catch(() => {
+          /* falha de rede — o próximo bipe atualiza */
+        });
     } catch (error: unknown) {
       pushToast(
         error instanceof Error ? error.message : "Falha ao finalizar a embalagem.",
@@ -180,9 +202,7 @@ export function EmbalagemClient() {
     if (!session || !order || cancelling) return;
     if (!order.session.isMine) {
       // Sessão de outro operador — só limpa a tela.
-      setOrder(null);
-      setPicks({});
-      setBoxScanCount(0);
+      resetOrderState();
       return;
     }
     setCancelling(true);
@@ -192,9 +212,7 @@ export function EmbalagemClient() {
         numPedido: order.legacyNumPedido,
       });
       pushToast(`Embalagem do pedido ${order.numPedido} cancelada.`, "warn");
-      setOrder(null);
-      setPicks({});
-      setBoxScanCount(0);
+      resetOrderState();
     } catch (error: unknown) {
       pushToast(
         error instanceof Error ? error.message : "Falha ao cancelar a embalagem.",
@@ -206,6 +224,10 @@ export function EmbalagemClient() {
   };
 
   const handleScan = (code: string) => {
+    if (finalizing || cancelling) {
+      pushToast("Aguarde o término da operação atual…", "warn");
+      return;
+    }
     if (isChaveAcesso(code)) {
       // 2º bipe da MESMA NF-e: finaliza a sessão aberta.
       if (order && code === order.chaveAcesso) {
@@ -249,10 +271,8 @@ export function EmbalagemClient() {
   };
 
   const handleReset = () => {
-    setOrder(null);
-    setPicks({});
     setScanError(null);
-    setBoxScanCount(0);
+    resetOrderState();
   };
 
   const handleExit = async () => {
@@ -299,8 +319,10 @@ export function EmbalagemClient() {
             </button>
           </div>
         )}
-        {scanning ? (
-          <OrderLoading code={scannedKey} />
+        {finalizing ? (
+          <OrderLoading code={order?.chaveAcesso ?? null} mode="finalizando" />
+        ) : scanning ? (
+          <OrderLoading code={scannedKey} mode="buscando" />
         ) : scanError ? (
           <OrderNotFound message={scanError} code={scannedKey} />
         ) : order ? (
