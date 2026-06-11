@@ -119,7 +119,7 @@ function ScanStrip({ stats, onScan, hasOrder, scannerVariant }) {
           <span className="pulse"></span>
           {hasOrder
             ? "PEDIDO CARREGADO · ESCANEIE O PRÓXIMO QUANDO TERMINAR"
-            : "POR FAVOR, ESCANEIE O CUPOM DO PEDIDO NO LEITOR"}
+            : "ESCANEIE O CUPOM DO PEDIDO NO LEITOR"}
         </div>
         <form onSubmit={submit}>
           <div className="scan-input-wrap">

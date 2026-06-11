@@ -644,6 +644,20 @@ button { font-family: inherit; }
   font-size: 18px;
 }
 
+.topbar .brand-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.topbar .brand-button:hover { opacity: 0.85; }
+.topbar .brand-button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
 .topbar .brand-mark {
   width: 30px;
   height: 30px;
@@ -1048,6 +1062,53 @@ button { font-family: inherit; }
   box-shadow: 0 0 0 4px rgba(0, 111, 238, .12);
 }
 
+/* Form/input do leitor de código: ficam invisíveis na tela mas continuam
+   focados (o scanner físico "digita" os caracteres aqui). Não usamos
+   display:none nem visibility:hidden porque ambos removem a capacidade de
+   receber foco. Padrão sr-only com clip-path. */
+.scan-form-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.scan-input-hidden {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scan-debug-buffer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #1f2937;
+  background: #fff7ed;
+  border: 2px dashed #f97316;
+  padding: 6px 10px;
+  border-radius: 8px;
+  word-break: break-all;
+}
+
+.scan-enable-btn {
+  align-self: flex-start;
+  background: var(--brand);
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.scan-enable-btn:hover { opacity: 0.9; }
+
 .scan-stats { display: flex; gap: 10px; }
 
 .stat-chip {
@@ -1145,6 +1206,21 @@ button { font-family: inherit; }
   border-radius: 999px;
   background: var(--danger);
   color: white;
+}
+
+@media (max-width: 560px) {
+  .already-packed {
+    gap: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.3;
+    border-radius: 10px;
+  }
+  .already-packed-tag {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+  }
 }
 
 .info-grid {
@@ -1736,6 +1812,15 @@ button { font-family: inherit; }
 .temp-num .where b { color: var(--ink); font-weight: 600; }
 .temp-num .forecast { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
 
+.temp-forecast {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+  font-size: 12px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
 .carrier {
   display: grid;
   grid-template-columns: 56px 1fr;
@@ -1866,32 +1951,178 @@ button { font-family: inherit; }
 .btn-big:not(:disabled):hover { background: #14b85a; }
 .btn-big:active { transform: translateY(1px); }
 
-.embalagem-actions {
+/* Feedback visual da bipagem de volumes ----------------------------------- */
+.vol-progress {
   display: flex;
-  justify-content: flex-end;
-  margin-top: -8px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #bbf7d0;
 }
 
-.btn-cancelar-embalagem {
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--danger, #e11d48);
-  border: 1px solid currentColor;
+.vol-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.vol-progress-counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.vol-progress-current {
+  font-size: 44px;
+  font-weight: 800;
+  color: #15803d;
+  font-variant-numeric: tabular-nums;
+}
+
+.vol-progress-sep {
+  font-size: 28px;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+.vol-progress-total {
+  font-size: 28px;
+  color: var(--ink-2);
   font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background .15s ease;
+  font-variant-numeric: tabular-nums;
 }
 
-.btn-cancelar-embalagem:hover:not(:disabled) {
-  background: rgba(225, 29, 72, 0.08);
+.vol-progress-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+  margin-left: auto;
 }
 
-.btn-cancelar-embalagem:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.vol-progress-status {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.vol-progress-status--ok { color: #15803d; }
+
+.vol-progress-hint { font-size: 13px; color: var(--ink-3); }
+
+.vol-progress-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.vol-slot {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--ink-3);
+  transition: background .25s ease, border-color .25s ease, color .25s ease,
+    transform .25s ease;
+}
+
+.vol-slot--scanned {
+  background: #22c55e;
+  border-style: solid;
+  border-color: #16a34a;
+  color: white;
+  box-shadow: 0 6px 18px rgba(22, 163, 74, .25);
+}
+
+.vol-slot--extra {
+  background: #f59e0b;
+  border-color: #d97706;
+  box-shadow: 0 6px 18px rgba(217, 119, 6, .25);
+}
+
+.vol-slot--pulse { animation: vol-slot-pulse .55s ease-out; }
+
+@keyframes vol-slot-pulse {
+  0% { transform: scale(.7); box-shadow: 0 0 0 0 rgba(22, 163, 74, .55); }
+  60% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(22, 163, 74, 0); }
+  100% { transform: scale(1); box-shadow: 0 6px 18px rgba(22, 163, 74, .25); }
+}
+
+.vol-slot-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: .85;
+}
+
+.vol-slot-check {
+  stroke-width: 3;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .15));
+}
+
+.vol-slot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+/* Mobile: compacta o bloco de volumes — contador menor, cartões em linha
+   rolável horizontal, sem números nos slots. */
+@media (max-width: 640px) {
+  .vol-progress {
+    padding: 4px 6px;
+    gap: 3px;
+    border-radius: 8px;
+    /* Descola dos blocos vizinhos (ScanStrip acima, OrderDetail abaixo) */
+    margin: 6px 0;
+  }
+
+  .vol-progress-head { gap: 4px; }
+
+  .vol-progress-current { font-size: 14px; }
+  .vol-progress-sep,
+  .vol-progress-total { font-size: 11px; }
+
+  .vol-progress-status { font-size: 9px; }
+  .vol-progress-hint { font-size: 9px; }
+
+  .vol-progress-grid {
+    display: flex;
+    gap: 3px;
+    overflow-x: auto;
+    padding-bottom: 1px;
+    grid-template-columns: none !important;
+  }
+
+  .vol-slot {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    aspect-ratio: auto;
+    border-radius: 5px;
+    border-width: 1px;
+    gap: 0;
+  }
+
+  .vol-slot-num { display: none; }
+  .vol-slot-check { width: 10px; height: 10px; }
+  .vol-slot-dot { width: 4px; height: 4px; }
 }
 
 .toast-wrap {
@@ -1945,6 +2176,7 @@ body.compact .order-code .pid { font-size: 22px; }
   .topbar { padding: 0 16px; gap: 10px; }
   .topbar .station { display: none; }
   .topbar .brand .brand-name { display: none; }
+  .btn-new-order { display: none; }
   .operator-stat { padding: 3px 10px; min-width: 48px; }
   .operator-stat .value { font-size: 14px; }
   .stage { padding: 16px 16px 48px; }
@@ -1965,8 +2197,10 @@ body.compact .order-code .pid { font-size: 22px; }
   .order-code { flex-wrap: wrap; }
   .panel-head { padding: 14px 16px; }
   .panel-title { font-size: 11px; }
-  .gif { aspect-ratio: 4 / 3; }
-  .gif--media { aspect-ratio: auto; }
+  .gif { aspect-ratio: 4 / 3; max-height: 120px; }
+  .gif--media { aspect-ratio: auto; max-height: 120px; overflow: hidden !important; }
+  .gif.gif--media .gif-media { max-height: 120px !important; object-fit: contain; }
+  .gif-caption { font-size: 11px; padding: 4px 2px 0; }
   .actions .kbd, .actions .hint .kbd { display: inline-block; }
   .actions .hint { font-size: 12px; }
   .btn.ghost { padding: 9px 10px; }
@@ -2204,4 +2438,170 @@ body.compact .order-code .pid { font-size: 22px; }
 
 @media (prefers-reduced-motion: reduce) {
   .order-notfound { animation: none; }
+}
+
+/* ───── Overlay de sucesso ao fechar a embalagem ───── */
+.pack-success {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(2px);
+  animation: pack-success-bg 1.4s ease-out forwards;
+  pointer-events: none;
+}
+
+.pack-success-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 36px 22px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+  animation: pack-success-pop 420ms cubic-bezier(.18,.89,.32,1.28);
+}
+
+.pack-success-circle {
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-success-ring {
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: pack-success-ring 480ms ease-out 80ms forwards;
+}
+
+.pack-success-check {
+  stroke-dasharray: 56;
+  stroke-dashoffset: 56;
+  animation: pack-success-check 360ms ease-out 360ms forwards;
+}
+
+.pack-success-burst {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.35) 0%, rgba(34, 197, 94, 0) 70%);
+  transform: scale(0.4);
+  opacity: 0;
+  animation: pack-success-burst 700ms ease-out 120ms forwards;
+  top: 30px;
+}
+
+.pack-success-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.pack-success-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.pack-success-code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.pack-success-sep { color: var(--line); }
+
+@keyframes pack-success-bg {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes pack-success-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes pack-success-ring {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pack-success-check {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pack-success-burst {
+  0%   { transform: scale(0.4); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ───── Bump dos contadores no TopBar ao incrementar ───── */
+.operator-stat { position: relative; }
+
+.operator-stat--bump {
+  animation: operator-stat-bump 700ms cubic-bezier(.18,.89,.32,1.28);
+}
+
+.operator-stat--bump .value {
+  color: #15803d;
+  animation: operator-stat-value-flash 900ms ease-out;
+}
+
+.operator-stat-bump {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  min-width: 22px;
+  padding: 2px 6px;
+  background: #16a34a;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.45);
+  animation: operator-stat-bump-badge 1.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes operator-stat-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes operator-stat-value-flash {
+  0%   { color: #15803d; }
+  100% { color: var(--ink); }
+}
+
+@keyframes operator-stat-bump-badge {
+  0%   { transform: translateY(6px) scale(0.6); opacity: 0; }
+  20%  { transform: translateY(0) scale(1.1);   opacity: 1; }
+  35%  { transform: translateY(0) scale(1);     opacity: 1; }
+  80%  { transform: translateY(0) scale(1);     opacity: 1; }
+  100% { transform: translateY(-10px) scale(0.9); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-success,
+  .pack-success-card,
+  .pack-success-burst,
+  .pack-success-ring,
+  .pack-success-check,
+  .operator-stat--bump,
+  .operator-stat--bump .value,
+  .operator-stat-bump { animation: none; }
 }

@@ -11,6 +11,7 @@ const nextConfig = {
   reactStrictMode: true,
   turbopack: { root: projectRoot },
   outputFileTracingRoot: projectRoot,
+  allowedDevOrigins: ['192.168.1.36'],
 };
 
 export default nextConfig;

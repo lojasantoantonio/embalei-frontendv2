@@ -7,10 +7,21 @@
 // host (porta 3000). Assim o app continua funcionando ao trocar de rede / IP
 // sem precisar reconfigurar .env.local. Em produção, defina
 // NEXT_PUBLIC_API_BASE_URL para apontar para o host do ERP.
+const BACKEND_DEV_PORT = "4050";
+const PRODUCTION_API_URL = "https://new.santolabs.com.br";
+
 function resolveApiBaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (envUrl) return envUrl.replace(/\/$/, "");
-  return "https://new.santolabs.com.br";
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location;
+    if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
+      const isLocalNetwork =
+        /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname);
+      if (isLocalNetwork) return `${protocol}//${hostname}:${BACKEND_DEV_PORT}`;
+    }
+  }
+  return PRODUCTION_API_URL;
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
@@ -126,21 +137,6 @@ export async function finalizarEmbalagem(input: {
   });
   if (!response.ok) throw new Error(await parseError(response));
   return (await response.json()) as FinalizeResult;
-}
-
-// Cancela a sessão aberta (botão "cancelar" na UI). Libera o num_pedido para
-// uma nova abertura. Aceita o `numPedido` legado (dígitos) devolvido em
-// `abrirEmbalagem`, evitando 2º round-trip à IDWorks.
-export async function cancelarEmbalagem(input: {
-  workstationId: string;
-  numPedido: string;
-}): Promise<void> {
-  const response = await fetch(`${ESTACOES_BASE}/pedidos/cancelar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-  if (!response.ok) throw new Error(await parseError(response));
 }
 
 // Heartbeat e liberação são chamadas best-effort em background: uma falha de

@@ -5,7 +5,6 @@ import { Toast, toast } from "@heroui/react";
 import type { OperatorStats, ScannedOrder, ToastKind } from "@/types";
 import {
   abrirEmbalagem,
-  cancelarEmbalagem,
   clearSession,
   enviarHeartbeat,
   fetchOperatorStats,
@@ -20,6 +19,11 @@ import { EmptyState } from "./EmptyState";
 import { OrderDetail } from "./OrderDetail";
 import { OrderLoading } from "./OrderLoading";
 import { OrderNotFound } from "./OrderNotFound";
+import { VolumeProgress } from "./VolumeProgress";
+import { PackSuccessOverlay } from "./PackSuccessOverlay";
+
+// Duração do overlay de sucesso após fechar a embalagem.
+const PACK_SUCCESS_VISIBLE_MS = 1400;
 
 // Guard de auth e logout do quiosque usam navegação "dura" (window.location)
 // em vez do router do App Router: redirect num efeito remontado pelo Strict
@@ -41,7 +45,6 @@ export function EmbalagemClient() {
   // bipe da chave da nota). Não há finalização automática por contagem.
   const [boxScanCount, setBoxScanCount] = useState(0);
   const [finalizing, setFinalizing] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
   // Total de pedidos / itens embalados hoje pelo operador — atualizado a cada
   // novo bip de NF-e e quando a sessão monta. "0/0" enquanto a 1ª resposta
   // não chega.
@@ -49,6 +52,10 @@ export function EmbalagemClient() {
     orderCount: 0,
     unitCount: 0,
   });
+  const [packSuccess, setPackSuccess] = useState<{
+    orderCode: string;
+    volumeCount: number;
+  } | null>(null);
 
   // Sem sessão (estação ocupada no login) não há o que embalar — volta ao login.
   useEffect(() => {
@@ -175,6 +182,11 @@ export function EmbalagemClient() {
         volumeCount: boxScanCount,
       });
       setOperatorStats(result.operatorStats);
+      setPackSuccess({
+        orderCode: order.numPedido,
+        volumeCount: boxScanCount,
+      });
+      setTimeout(() => setPackSuccess(null), PACK_SUCCESS_VISIBLE_MS);
       pushToast(
         `Pedido ${order.numPedido} embalado · ${boxScanCount} volume(s)`,
         "success"
@@ -198,34 +210,9 @@ export function EmbalagemClient() {
     }
   };
 
-  const handleCancel = async () => {
-    if (!session || !order || cancelling) return;
-    if (!order.session.isMine) {
-      // Sessão de outro operador — só limpa a tela.
-      resetOrderState();
-      return;
-    }
-    setCancelling(true);
-    try {
-      await cancelarEmbalagem({
-        workstationId: session.workstationId,
-        numPedido: order.legacyNumPedido,
-      });
-      pushToast(`Embalagem do pedido ${order.numPedido} cancelada.`, "warn");
-      resetOrderState();
-    } catch (error: unknown) {
-      pushToast(
-        error instanceof Error ? error.message : "Falha ao cancelar a embalagem.",
-        "error"
-      );
-    } finally {
-      setCancelling(false);
-    }
-  };
-
   const handleScan = (code: string) => {
-    if (finalizing || cancelling) {
-      pushToast("Aguarde o término da operação atual…", "warn");
+    if (finalizing) {
+      pushToast("Aguarde a finalização da embalagem atual…", "warn");
       return;
     }
     if (isChaveAcesso(code)) {
@@ -235,10 +222,10 @@ export function EmbalagemClient() {
         return;
       }
       // Bipou uma NF-e diferente com sessão aberta: bloqueia (operador precisa
-      // finalizar ou cancelar antes de abrir outra).
+      // finalizar antes de abrir outra).
       if (order && order.session.isMine && !order.alreadyPacked) {
         pushToast(
-          "Finalize ou cancele a embalagem atual antes de bipar outra NF-e.",
+          "Finalize a embalagem atual antes de bipar outra NF-e.",
           "error"
         );
         return;
@@ -254,10 +241,17 @@ export function EmbalagemClient() {
       pushToast("Sessão não está aberta neste operador.", "warn");
       return;
     }
-    const nextCount = boxScanCount + 1;
-    setBoxScanCount(nextCount);
-    const totalVolumes = Math.max(order.volumeCount, 1);
-    pushToast(`Caixa ${nextCount}/${totalVolumes} bipada`, "success");
+    const expected = Math.max(order.volumeCount, 1);
+    // Bloqueia bipagens além do total esperado vindo da API. O operador deve
+    // bipar a NF-e novamente para finalizar quando chegar no total.
+    if (boxScanCount >= expected) {
+      pushToast(
+        `Todos os ${expected} volume(s) já foram bipados · bipe a NF-e para finalizar`,
+        "warn"
+      );
+      return;
+    }
+    setBoxScanCount(boxScanCount + 1);
   };
 
   const handlePickItem = (idSku: string) => {
@@ -307,17 +301,11 @@ export function EmbalagemClient() {
           volumeCount={order?.volumeCount ?? 0}
           scannerVariant="a"
         />
-        {order && order.session.isMine && !order.alreadyPacked && (
-          <div className="embalagem-actions">
-            <button
-              type="button"
-              className="btn-cancelar-embalagem"
-              onClick={handleCancel}
-              disabled={cancelling || finalizing}
-            >
-              {cancelling ? "Cancelando…" : "Cancelar embalagem"}
-            </button>
-          </div>
+        {order && order.session.isMine && !order.alreadyPacked && !finalizing && (
+          <VolumeProgress
+            scannedCount={boxScanCount}
+            totalVolumes={order.volumeCount}
+          />
         )}
         {finalizing ? (
           <OrderLoading code={order?.chaveAcesso ?? null} mode="finalizando" />
@@ -332,6 +320,12 @@ export function EmbalagemClient() {
         )}
       </div>
       <Toast.Provider placement="bottom" />
+      {packSuccess && (
+        <PackSuccessOverlay
+          orderCode={packSuccess.orderCode}
+          volumeCount={packSuccess.volumeCount}
+        />
+      )}
     </>
   );
 }

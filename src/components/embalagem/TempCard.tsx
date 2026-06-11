@@ -36,14 +36,9 @@ export function TempCard({ temp }: { temp: OrderTemperature }) {
           <div className="forecast">{temp.condition}</div>
         </div>
       </div>
-      <div
-        style={{
-          marginTop: 12,
-          paddingTop: 12,
-          borderTop: "1px solid var(--line-2)",
-        }}
-      > 
-      </div>
+      {temp.forecast && (
+        <div className="temp-forecast">{temp.forecast}</div>
+      )}
     </div>
   );
 }

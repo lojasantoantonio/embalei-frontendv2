@@ -3,6 +3,13 @@ import type { ScannedCarrier } from "@/types";
 
 function formatDeliveryDate(raw: string | null): string {
   if (!raw) return "A definir";
+  // Backend normaliza para "YYYY-MM-DD". Parse manual evita shift de timezone
+  // (new Date("2026-06-12") = meia-noite UTC → vira 11/06 em UTC-3).
+  const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${day}/${month}/${year}`;
+  }
   const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return raw;
   return parsed.toLocaleDateString("pt-BR", {
