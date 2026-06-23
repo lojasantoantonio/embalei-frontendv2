@@ -25,8 +25,11 @@ export interface OrderCarrier {
 export interface OrderTemperature {
   city: string;
   value: number;
+  min: number | null;
+  max: number | null;
   condition: string;
   forecast: string;
+  deliveryDate: string;
 }
 
 export interface Order {
@@ -58,8 +61,11 @@ export interface ScannedCarrier {
 export interface ScannedTemperature {
   city: string;
   value: number;
+  min: number | null;
+  max: number | null;
   condition: string;
   forecast: string;
+  deliveryDate: string;
 }
 
 export interface OrderPackedBy {

@@ -39,6 +39,12 @@ export interface ApiUser {
   username: string;
 }
 
+export interface ApiEmbalagem {
+  id: number;
+  name: string;
+  eanCode: string | null;
+}
+
 export type EstacaoStatus = "disponivel" | "em_uso";
 
 export interface ApiEstacao {
@@ -74,6 +80,13 @@ export async function fetchUsuarios(): Promise<ApiUser[]> {
   if (!response.ok) throw new Error(await parseError(response));
   const data = await response.json();
   return data.usuarios as ApiUser[];
+}
+
+export async function fetchEmbalagens(): Promise<ApiEmbalagem[]> {
+  const response = await fetch(`${ESTACOES_BASE}/embalagens`, { cache: "no-store" });
+  if (!response.ok) throw new Error(await parseError(response));
+  const data = await response.json();
+  return data.embalagens as ApiEmbalagem[];
 }
 
 export async function fetchEstacoes(): Promise<{
@@ -129,6 +142,9 @@ export async function finalizarEmbalagem(input: {
   workstationId: string;
   chaveAcesso: string;
   volumeCount: number;
+  // Códigos (EAN das embalagens) bipados em cada volume, na ordem em que foram
+  // lidos. O backend cruza com a tabela de embalagens para o relatório.
+  volumeCodes: string[];
 }): Promise<FinalizeResult> {
   const response = await fetch(`${ESTACOES_BASE}/pedidos/finalizar`, {
     method: "POST",

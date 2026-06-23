@@ -16,7 +16,7 @@ export const ORDERS: Record<string, Order> = {
     ],
     box: { name: "Caixa M (Reforçada)", dim: "32 × 24 × 18 cm", fill: 78 },
     carrier: { name: "Loggi Express", svc: "Refrigerado · Entrega no mesmo dia", logo: "L", eta: "Entrega até hoje, 19h00", color: "#1d4ed8" },
-    temperature: { city: "Curitiba, PR", value: 14, condition: "Garoa leve · sensação 12°", forecast: "Refrigeração mantida até 8h" },
+    temperature: { city: "Curitiba, PR", value: 14, min: 11, max: 17, condition: "Garoa leve · sensação 12°", forecast: "Refrigeração mantida até 8h", deliveryDate: "" },
   },
   "PED-99014": {
     code: "PED-99014",
@@ -31,7 +31,7 @@ export const ORDERS: Record<string, Order> = {
     ],
     box: { name: "Caixa P (Padrão)", dim: "22 × 16 × 12 cm", fill: 64 },
     carrier: { name: "Jadlog Premium", svc: "Expresso aéreo · 24h", logo: "J", eta: "Entrega amanhã até 12h00", color: "#dc2626" },
-    temperature: { city: "Salvador, BA", value: 31, condition: "Sol forte · UV alto", forecast: "Atenção a derretimento" },
+    temperature: { city: "Salvador, BA", value: 31, min: 26, max: 34, condition: "Sol forte · UV alto", forecast: "Atenção a derretimento", deliveryDate: "" },
   },
   "PED-73650": {
     code: "PED-73650",
@@ -47,7 +47,7 @@ export const ORDERS: Record<string, Order> = {
     ],
     box: { name: "Caixa G (Vinhos)", dim: "38 × 28 × 22 cm", fill: 82 },
     carrier: { name: "Total Express", svc: "Padrão refrigerado", logo: "T", eta: "Entrega em 2 dias úteis", color: "#0f766e" },
-    temperature: { city: "Porto Alegre, RS", value: 9, condition: "Frente fria · 78% umidade", forecast: "Condição ideal para vinho" },
+    temperature: { city: "Porto Alegre, RS", value: 9, min: 6, max: 13, condition: "Frente fria · 78% umidade", forecast: "Condição ideal para vinho", deliveryDate: "" },
   },
 };
 

@@ -15,8 +15,11 @@ interface Props {
 const PLACEHOLDER_TEMPERATURE: OrderTemperature = {
   city: "—",
   value: 0,
+  min: null,
+  max: null,
   condition: "Previsão indisponível",
   forecast: "",
+  deliveryDate: "",
 };
 
 function formatScannedAt(raw: string): string | null {
@@ -65,10 +68,9 @@ export function OrderDetail({ order, picks, onPick }: Props) {
         <div className="panel">
           <CarrierCard carrier={order.carrier} />
         </div>
-        <div className="panel">
+        <div className="panel delivery-panel">
           <TempCard temp={order.temperature ?? PLACEHOLDER_TEMPERATURE} />
-        </div>
-        <div className="panel">
+          <div className="panel-divider" />
           <LabelGif gifUrl={order.labelGifUrl} />
         </div>
       </div>

@@ -1016,24 +1016,42 @@ button { font-family: inherit; }
   display: flex;
   align-items: center;
   gap: 14px;
-  color: var(--ink);
-  font-weight: 700;
+  color: #166534;
+  font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.01em;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1.5px solid #bbf7d0;
+  animation: headlinePulse 1.5s ease-in-out infinite;
+}
+
+/* Pulso de destaque no campo de "próximos passos". */
+@keyframes headlinePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    border-color: #bbf7d0;
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0.14);
+    border-color: #86efac;
+  }
 }
 
 .scan-headline .pulse {
-  width: 10px;
-  height: 10px;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 0 0 rgba(23, 201, 100, .5);
-  animation: pulse 1.6s ease-out infinite;
+  box-shadow: 0 0 0 0 rgba(23, 201, 100, .6);
+  animation: pulse 1.4s ease-out infinite;
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(23, 201, 100, .5); }
-  100% { box-shadow: 0 0 0 14px rgba(23, 201, 100, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(23, 201, 100, .6); }
+  100% { box-shadow: 0 0 0 16px rgba(23, 201, 100, 0); }
 }
 
 .scan-sub { color: var(--ink-2); font-size: 14px; margin-top: -4px; }
@@ -1225,23 +1243,28 @@ button { font-family: inherit; }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
 .info-grid > .panel { padding: 18px; min-height: 100%; }
 
-@media (max-width: 1280px) {
-  .info-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 720px) {
   .info-grid { grid-template-columns: 1fr; }
-  /* Mobile: inverter a ordem dos painéis
-     (como etiquetar → temperatura → transportadora) */
-  .info-grid > .panel:nth-child(1) { order: 3; } /* Transportadora */
-  .info-grid > .panel:nth-child(2) { order: 2; } /* Temperatura */
-  .info-grid > .panel:nth-child(3) { order: 1; } /* Como etiquetar */
+  /* Mobile: temperatura + etiqueta primeiro, transportadora por último. */
+  .info-grid > .panel:nth-child(1) { order: 2; } /* Transportadora */
+  .info-grid > .panel:nth-child(2) { order: 1; } /* Temperatura + etiqueta */
+}
+
+/* Painel combinado: temperatura no topo, etiqueta embaixo. */
+.delivery-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-divider {
+  margin: 12px 0;
+  border-top: 1px solid var(--line-2);
 }
 
 .panel {
@@ -1746,77 +1769,52 @@ button { font-family: inherit; }
 .info-row .val { color: var(--ink); font-weight: 600; font-size: 14px; margin-top: 1px; }
 .info-row .sub { color: var(--ink-2); font-size: 12px; }
 
-.temp-card {
+.temp-minmax {
   display: grid;
-  grid-template-columns: 92px 1fr;
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
-.dial {
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background: conic-gradient(from 220deg, #0ea5e9 0%, #38bdf8 20%, #fbbf24 60%, #ef4444 100%);
-  display: grid;
-  place-items: center;
-  position: relative;
+.temp-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
 }
 
-.dial::after {
-  content: "";
-  position: absolute;
-  inset: 8px;
-  background: white;
-  border-radius: 50%;
+.temp-stat .lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
 }
 
-.dial .needle {
-  position: absolute;
-  width: 3px;
-  height: 38px;
-  background: var(--ink);
-  top: 8px;
-  left: 50%;
-  transform-origin: bottom center;
-  transform: translateX(-50%) rotate(var(--rot, -60deg));
-  border-radius: 2px;
-  z-index: 2;
-}
-
-.dial .center {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--ink);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-}
-
-.temp-num { display: flex; flex-direction: column; }
-
-.temp-num .deg {
-  font-size: 32px;
+.temp-stat .val {
+  font-size: 18px;
   font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.02em;
   line-height: 1;
+  letter-spacing: -0.02em;
   font-family: 'JetBrains Mono', monospace;
+  color: var(--ink);
 }
 
-.temp-num .deg .unit { font-size: 18px; color: var(--ink-3); }
-.temp-num .where { color: var(--ink-2); font-size: 13px; margin-top: 6px; }
-.temp-num .where b { color: var(--ink); font-weight: 600; }
-.temp-num .forecast { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+.temp-stat--min { background: #0ea5e90f; }
+.temp-stat--min .val { color: #0284c7; }
+.temp-stat--max { background: #ef44440f; }
+.temp-stat--max .val { color: #dc2626; }
+
+.temp-meta { margin-top: 6px; }
+.temp-meta .where { color: var(--ink-2); font-size: 12px; }
+.temp-meta .where b { color: var(--ink); font-weight: 600; }
+.temp-meta .cond { color: var(--ink-3); font-size: 11px; margin-top: 1px; }
 
 .temp-forecast {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid var(--line-2);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -1952,6 +1950,259 @@ button { font-family: inherit; }
 .btn-big:active { transform: translateY(1px); }
 
 /* Feedback visual da bipagem de volumes ----------------------------------- */
+/* ── Teclado virtual de embalagens (contagem de volumes) ── */
+@keyframes embKbUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Brilho de entrada para chamar atenção quando o teclado sobe. */
+@keyframes embKbGlow {
+  0% { box-shadow: 0 -10px 30px rgba(22, 163, 74, 0); }
+  35% { box-shadow: 0 -12px 44px rgba(22, 163, 74, 0.4); }
+  100% { box-shadow: 0 -10px 30px rgba(17, 24, 28, 0.12); }
+}
+
+@keyframes embKbScrimIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Escurece o conteúdo acima para destacar o teclado. Não bloqueia toques
+   (pointer-events: none) — é só feedback visual. */
+.emb-kb-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgba(17, 24, 28, 0.34);
+  pointer-events: none;
+  animation: embKbScrimIn 0.22s ease-out;
+}
+
+/* Quando o teclado está aberto, o scrim fecha ao tocar fora. */
+.emb-kb-scrim--clickable { pointer-events: auto; cursor: pointer; }
+
+/* Botão flutuante (FAB) que abre o teclado + botão de confirmar quando completo. */
+.emb-fab-bar {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.emb-fab {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  border: none;
+  background: var(--ink);
+  color: white;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 24px rgba(17, 24, 28, 0.28);
+  cursor: pointer;
+  transition: transform 0.08s, background 0.15s;
+  animation: embKbUp 0.24s ease-out;
+}
+
+.emb-fab:active { transform: scale(0.94); }
+.emb-fab--complete { background: #16a34a; }
+
+.emb-fab-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.emb-fab--complete .emb-fab-badge { border-color: #16a34a; color: #166534; }
+
+.emb-fab-confirm {
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(17, 24, 28, 0.28);
+  animation: embKbUp 0.24s ease-out;
+}
+
+.emb-kb {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Abre em tela cheia, mas começa abaixo do header (64px) para não cobri-lo. */
+  top: 64px;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: var(--panel);
+  border-top: 3px solid #16a34a;
+  box-shadow: 0 -10px 30px rgba(17, 24, 28, 0.12);
+  animation: embKbUp 0.24s ease-out, embKbGlow 1.2s ease-out;
+}
+
+.emb-kb-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emb-kb-title { font-weight: 600; font-size: 13px; color: var(--ink); margin-right: auto; }
+
+.emb-kb-close {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: none;
+  background: var(--ink);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(17, 24, 28, 0.25);
+  transition: transform 0.08s, background 0.15s;
+}
+
+.emb-kb-close:hover { background: #000; }
+.emb-kb-close:active { transform: scale(0.92); }
+.emb-kb-counter { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.emb-kb-counter b { color: var(--ink); font-size: 15px; }
+
+.emb-kb-empty {
+  padding: 18px;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.emb-kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-auto-rows: min-content;
+  gap: 12px;
+  /* Ocupa todo o espaço do modal e rola se houver muitas embalagens. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Espaço interno pra os badges (contagem/remover) não serem cortados pela
+     rolagem da grade. */
+  padding: 4px;
+}
+
+.emb-tile { position: relative; }
+
+.emb-tile-add {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  /* topo maior pra acomodar os badges sobre a embalagem */
+  padding: 13px 5px 7px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--line-2);
+  background: var(--bg);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, transform 0.08s;
+}
+
+.emb-tile-add:active { transform: scale(0.96); }
+.emb-tile-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.emb-tile--active .emb-tile-add {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.emb-tile-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.emb-count {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #16a34a;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.4);
+}
+
+.emb-remove {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: none;
+  background: var(--ink);
+  color: white;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.emb-remove:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.emb-kb-foot { display: flex; }
+.emb-confirm {
+  width: 100%;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .vol-progress {
   display: flex;
   flex-direction: column;
