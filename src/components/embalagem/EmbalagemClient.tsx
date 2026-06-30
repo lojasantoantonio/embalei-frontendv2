@@ -263,13 +263,9 @@ export function EmbalagemClient() {
       pushToast("Bipe a chave de acesso da NF-e do pedido.", "error");
       return;
     }
-    if (order.alreadyPacked || !order.session.isMine) {
-      pushToast("Sessão não está aberta neste operador.", "warn");
-      return;
-    }
-    // Bipe de volume: mesma lógica do teclado — o código lido é o EAN da
-    // embalagem, então conta o volume e acende o tile correspondente.
-    addEmbalagem(code.trim());
+    // O leitor só processa a chave da NF-e (abrir e finalizar). Os volumes não
+    // são mais bipados — o operador escolhe a embalagem usada no teclado.
+    pushToast("Selecione a embalagem do volume no teclado.", "warn");
   };
 
   // Adiciona um volume com aquele código — usado tanto pelo bipe quanto pelo

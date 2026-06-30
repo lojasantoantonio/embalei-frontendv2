@@ -19,8 +19,8 @@ function buildHeadline(
   if (boxScanCount >= volumeCount && volumeCount > 0)
     return "BIPE A NF-E PARA FINALIZAR";
   if (volumeCount > 1)
-    return `BIPE A CAIXA · ${boxScanCount}/${volumeCount} VOLUMES`;
-  return "BIPE A CAIXA USADA";
+    return `SELECIONE A CAIXA · ${boxScanCount}/${volumeCount} VOLUMES`;
+  return "SELECIONE A CAIXA USADA";
 }
 
 interface VirtualKeyboardLike {
@@ -148,7 +148,7 @@ export function ScanStrip({
           <Input
             ref={inputRef}
             className="scan-input-hidden"
-            aria-label="Leitor de código (NF-e ou caixa)"
+            aria-label="Leitor de código (NF-e)"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onBlur={scheduleRefocus}
