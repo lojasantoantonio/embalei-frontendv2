@@ -47,8 +47,8 @@ export function EmbalagemClient() {
   // Códigos (EAN das embalagens) selecionados para o pedido, na ordem de leitura
   // — cada toque adiciona um; o lápis define a quantidade exata. Enviados ao
   // finalizar para o relatório de embalagens por operador. Não há limite por
-  // volume esperado nem finalização automática — a finalização é explícita pelo
-  // botão "Confirmar volumes", que exige ao menos uma embalagem.
+  // volume esperado: a finalização é explícita, pelo botão "Confirmar volumes"
+  // ou pelo 2º bipe da NF-e, e ambos exigem ao menos uma embalagem.
   const [boxScanCodes, setBoxScanCodes] = useState<string[]>([]);
   // Quantidade total de embalagens — sempre derivada dos códigos, para nunca
   // dessincronizar (não é estado próprio).
@@ -180,7 +180,7 @@ export function EmbalagemClient() {
         );
       } else {
         pushToast(
-          `Pedido ${carregado.numPedido} aberto · selecione as embalagens e toque em "Confirmar volumes"`,
+          `Pedido ${carregado.numPedido} aberto · selecione as embalagens e bipe a NF-e novamente para finalizar`,
           "success"
         );
       }
@@ -256,11 +256,18 @@ export function EmbalagemClient() {
       return;
     }
     if (isChaveAcesso(code)) {
-      // 2º bipe da MESMA NF-e: NÃO finaliza mais (evita finalização acidental
-      // por duplo bip). A finalização passa a ser explícita pelo botão
-      // "Confirmar volumes", que valida os campos obrigatórios.
+      // 2º bipe da MESMA NF-e finaliza a embalagem, desde que ao menos uma
+      // embalagem tenha sido selecionada no teclado — mesma validação do botão
+      // "Confirmar volumes", que continua disponível.
       if (order && code === order.chaveAcesso) {
-        pushToast("Pedido já carregado · use o botão para finalizar.", "warn");
+        if (boxScanCount < 1) {
+          pushToast(
+            "Selecione ao menos uma embalagem utilizada antes de finalizar o pedido.",
+            "error"
+          );
+          return;
+        }
+        void finalizar();
         return;
       }
       // Bipou uma NF-e diferente com sessão aberta: bloqueia (operador precisa
@@ -280,7 +287,7 @@ export function EmbalagemClient() {
       return;
     }
     // O leitor só processa a chave da NF-e (abrir e finalizar). Os volumes não
-    // são mais bipados — o operador escolhe a embalagem usada no teclado.
+    // são bipados — o operador escolhe a embalagem usada no teclado.
     pushToast("Selecione a embalagem do volume no teclado.", "warn");
   };
 
